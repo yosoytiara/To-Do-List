@@ -3,9 +3,10 @@
 const form = document.getElementById("todoform");
 const todoInput = document.getElementById("newtodo");
 const todosListE1 = document.getElementById("todo-list");
-
+const notficationE1 = document.querySelector(".notification");
 //vars
-let todos = [];
+let todos = JSON.parse(localStorage.getItem("todos")) || [];
+let EditTodoId = -1;
 //form submit
 
 form.addEventListener("submit", function (event) {
@@ -13,6 +14,7 @@ form.addEventListener("submit", function (event) {
 
   saveTodo();
   renderTodos();
+  localStorage.setItem("todos", JSON.stringify(todos));
 });
 
 //save todo
@@ -28,22 +30,33 @@ function saveTodo() {
   );
 
   if (isEmpty) {
-    alert("Todo input is empty");
+    shownotfication("Todo input is empty");
   } else if (isDuplicate) {
-    alert("Todo already exist");
+    shownotfication("Todo already exist");
   } else {
-    todos.push({
-      value: todoValue,
-      checked: false,
-      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
-    });
-
+    if (EditTodoId >= 0) {
+      todos = todos.map((todo, index) => ({
+        ...todo,
+        value: index === EditTodoId ? todoValue : todo.value,
+      }));
+      EditTodoId = -1;
+    } else {
+      todos.push({
+        value: todoValue,
+        checked: false,
+        color: "#" + Math.floor(Math.random() * 16777215).toString(16),
+      });
+    }
     todoInput.value = "";
   }
 }
 
 //render todos
 function renderTodos() {
+  if (todos.length === 0) {
+    todosListE1.innerHTML = "<center> Nothing to do! </center>";
+    return;
+  }
   //Clear element before a re-render
   todosListE1.innerHTML = "";
 
@@ -56,7 +69,9 @@ function renderTodos() {
           } " style=" color: ${todo.color}"
           data-action ="check"
           ></i>
-          <p class=""  data-action ="check">${todo.value}</p>
+          <p class="${todo.checked ? "checked" : ""}"  data-action ="check">${
+      todo.value
+    }</p>
           <i class="bi bi-pencil-square" data-action ="edit">  </i>
           <i class="bi bi-x-square"  data-action ="delete"></i>
         </div>        
@@ -77,8 +92,8 @@ todosListE1.addEventListener("click", (event) => {
   // target action
   const action = target.dataset.action;
   action === "check" && checkTodo(todoId);
-  //action === "edit" && editTodo(todoId);
-  //action === "delete" && deletekTodo(todoId);
+  action === "edit" && editTodo(todoId);
+  action === "delete" && deleteTodo(todoId);
 });
 
 //check a todo
@@ -89,4 +104,36 @@ function checkTodo(todoId) {
     checked: index === todoId ? !todo.checked : todo.checked,
   }));
   renderTodos();
+  localStorage.setItem("todos", JSON.stringify(todos));
+}
+
+//edit a todo
+function editTodo(todoId) {
+  todoInput.value = todos[todoId].value;
+  EditTodoId = todoId;
+}
+
+//delete a todo
+
+function deleteTodo(todoId) {
+  todos = todos.filter((todo, index) => index !== todoId);
+  EditTodoId = -1;
+
+  //re-render
+  renderTodos();
+  localStorage.setItem("todos", JSON.stringify(todos));
+}
+
+//show a notfication
+
+function shownotfication(msg) {
+  //change the message
+  notficationE1.innerHTML = msg;
+
+  //notfication enter
+  notficationE1.classList.add("notfi-enter");
+  //notfication leave
+  setTimeout(() => {
+    notficationE1.classList.removel("notif-enter");
+  }, 2000);
 }
