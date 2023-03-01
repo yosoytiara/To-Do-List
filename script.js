@@ -53,10 +53,12 @@ function renderTodos() {
     <div class="todo" id=${index}>
           <i class="bi ${
             todo.checked ? "bi-check-circle-fill" : "bi-circle"
-          } " style=" color: ${todo.color}"></i>
-          <p class="">${todo.value}</p>
-          <i class="bi bi-pencil-square"></i>
-          <i class="bi bi-x-square"></i>
+          } " style=" color: ${todo.color}"
+          data-action ="check"
+          ></i>
+          <p class=""  data-action ="check">${todo.value}</p>
+          <i class="bi bi-pencil-square" data-action ="edit">  </i>
+          <i class="bi bi-x-square"  data-action ="delete"></i>
         </div>        
         </div>`;
   });
@@ -66,4 +68,25 @@ function renderTodos() {
 
 todosListE1.addEventListener("click", (event) => {
   const target = event.target;
+  const parentElement = target.parentNode;
+
+  if (parentElement.className !== "todo") return;
+  /// todo id
+  const todo = parentElement;
+  const todoId = Number(todo.id);
+  // target action
+  const action = target.dataset.action;
+  action === "check" && checkTodo(todoId);
+  //action === "edit" && editTodo(todoId);
+  //action === "delete" && deletekTodo(todoId);
 });
+
+//check a todo
+
+function checkTodo(todoId) {
+  todos = todos.map((todo, index) => ({
+    ...todo,
+    checked: index === todoId ? !todo.checked : todo.checked,
+  }));
+  renderTodos();
+}
